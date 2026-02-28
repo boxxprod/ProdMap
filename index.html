@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GTA5 Crew Map</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --green: #00ff87;
+      --green-dim: #00cc6a;
+      --red: #ff3c3c;
+      --yellow: #ffd700;
+      --bg: #0a0a0f;
+      --panel: #11141a;
+      --panel2: #181c25;
+      --border: #1e2535;
+      --text: #c8d6e5;
+      --text-dim: #5a6a80;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      height: 54px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      z-index: 1000;
+    }
+
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--green);
+      text-shadow: 0 0 16px #00ff8766;
+    }
+    .logo span { color: var(--text-dim); font-weight: 400; }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; } 50% { opacity: 0.4; }
+    }
+
+    .status-text {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+
+    /* ── LAYOUT ── */
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      width: 300px;
+      flex-shrink: 0;
+      background: var(--panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-header h2 {
+      font-size: 0.75rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+    }
+
+    .search-box {
+      width: 100%;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-box:focus { border-color: var(--green); }
+    .search-box::placeholder { color: var(--text-dim); }
+
+    .marker-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+    .marker-list::-webkit-scrollbar { width: 4px; }
+    .marker-list::-webkit-scrollbar-track { background: transparent; }
+    .marker-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .marker-item {
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--green);
+      border-radius: 4px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .marker-item:hover { background: #1e2535; border-color: var(--green); }
+    .marker-item.red-border { border-left-color: var(--red); }
+    .marker-item.yellow-border { border-left-color: var(--yellow); }
+
+    .marker-item-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .marker-item-desc {
+      font-size: 0.82rem;
+      color: var(--text-dim);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .marker-item-meta {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-dim);
+      margin-top: 5px;
+      opacity: 0.6;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-dim);
+      font-size: 0.9rem;
+    }
+    .empty-state .icon { font-size: 2rem; margin-bottom: 10px; }
+
+    /* ── MAP ── */
+    #map {
+  flex: 1;
+  background: #050508;
+  cursor: crosshair;
+  height: 100%;
+}
+
+    /* Click hint banner */
+    .click-hint {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.85);
+      border: 1px solid var(--green);
+      border-radius: 4px;
+      padding: 8px 20px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--green);
+      letter-spacing: 1px;
+      z-index: 800;
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 1s;
+    }
+    .click-hint.hidden { opacity: 0; }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--green);
+      border-radius: 6px;
+      width: 420px;
+      max-width: 95vw;
+      padding: 28px;
+      animation: slideUp 0.2s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to   { transform: none; opacity: 1; }
+    }
+
+    .modal h2 {
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 20px;
+    }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+      resize: vertical;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus { border-color: var(--green); }
+    .form-group select option { background: var(--panel2); }
+
+    .color-row {
+      display: flex;
+      gap: 10px;
+    }
+    .color-btn {
+      flex: 1;
+      padding: 8px;
+      border-radius: 4px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      transition: all 0.15s;
+    }
+    .color-btn.green { background: #00ff8722; color: var(--green); border-color: #00ff8733; }
+    .color-btn.red   { background: #ff3c3c22; color: var(--red);   border-color: #ff3c3c33; }
+    .color-btn.yellow{ background: #ffd70022; color: var(--yellow); border-color: #ffd70033; }
+    .color-btn.selected { border-color: currentColor; }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 11px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: all 0.15s;
+    }
+    .btn-primary {
+      background: var(--green);
+      color: #000;
+    }
+    .btn-primary:hover { background: var(--green-dim); }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--text-dim); color: var(--text); }
+
+    /* Delete btn inside popup */
+    .leaflet-popup-content button.delete-btn {
+      background: var(--red);
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      padding: 5px 12px;
+      cursor: pointer;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin-top: 8px;
+      width: 100%;
+    }
+
+    /* Leaflet custom popup */
+    .leaflet-popup-content-wrapper {
+      background: var(--panel) !important;
+      border: 1px solid var(--border) !important;
+      border-top: 2px solid var(--green) !important;
+      border-radius: 4px !important;
+      color: var(--text) !important;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6) !important;
+      font-family: 'Rajdhani', sans-serif !important;
+    }
+    .leaflet-popup-tip { background: var(--border) !important; }
+    .leaflet-popup-close-button { color: var(--text-dim) !important; font-size: 18px !important; }
+
+    .popup-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .popup-category {
+      font-size: 0.72rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 6px;
+    }
+    .popup-category.red { color: var(--red); }
+    .popup-category.yellow { color: var(--yellow); }
+    .popup-desc {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      line-height: 1.4;
+    }
+    .popup-added {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      opacity: 0.5;
+      margin-top: 6px;
+    }
+
+    /* Firebase config warning */
+    .config-banner {
+      display: none;
+      position: fixed;
+      top: 54px;
+      left: 0; right: 0;
+      background: #ff3c3c22;
+      border-bottom: 1px solid var(--red);
+      color: var(--red);
+      text-align: center;
+      padding: 10px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8rem;
+      z-index: 1500;
+    }
+    .config-banner.show { display: block; }
+
+    /* Marker count badge */
+    .marker-count {
+      display: inline-block;
+      background: var(--green);
+      color: #000;
+      font-size: 0.65rem;
+      font-weight: 700;
+      border-radius: 10px;
+      padding: 2px 7px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+
+<!-- CONFIG BANNER (shown if Firebase isn't set up yet) -->
+<div class="config-banner" id="configBanner">
+  ⚠ FIREBASE NOT CONFIGURED — markers won't save yet. See the setup guide to connect your database.
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">GTA5 <span>//</span> CREW MAP</div>
+  <nav style="display:flex;gap:4px;">
+    <a style="padding:6px 16px;border-radius:4px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:2px;text-transform:uppercase;text-decoration:none;color:var(--green);border:1px solid var(--green);background:#00ff8711;" href="index.html">Map</a>
+    <a style="padding:6px 16px;border-radius:4px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:2px;text-transform:uppercase;text-decoration:none;color:var(--text-dim);border:1px solid transparent;transition:all 0.15s;" href="recipes.html">Recipes</a>
+  </nav>
+  <div class="header-right">
+    <div class="status-dot" id="statusDot"></div>
+    <div class="status-text" id="statusText">CONNECTING...</div>
+  </div>
+</header>
+
+<!-- MAIN LAYOUT -->
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>Locations <span class="marker-count" id="markerCount">0</span></h2>
+      <input class="search-box" id="searchBox" type="text" placeholder="Search locations..."/>
+    </div>
+    <div class="marker-list" id="markerList">
+      <div class="empty-state">
+        <div class="icon">📍</div>
+        <div>No markers yet.<br/>Click anywhere on the map to add one.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAP -->
+  <div style="position:relative; flex:1;">
+    <div id="map"></div>
+    <div class="click-hint" id="clickHint">[ CLICK MAP TO DROP A MARKER ]</div>
+  </div>
+
+</div>
+
+<!-- ADD MARKER MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2>// Drop Marker</h2>
+    <div class="form-group">
+      <label>Location Name</label>
+      <input type="text" id="markerTitle" placeholder="e.g. Heist Meetup Spot" maxlength="60"/>
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <select id="markerCategory">
+        <option value="General">General</option>
+        <option value="Heist">Heist</option>
+        <option value="Safe House">Safe House</option>
+        <option value="Stash">Stash</option>
+        <option value="Danger Zone">Danger Zone</option>
+        <option value="Race Point">Race Point</option>
+        <option value="Custom">Custom</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Description</label>
+      <textarea id="markerDesc" rows="3" placeholder="Add notes, tips, or context..."></textarea>
+    </div>
+    <div class="form-group">
+      <label>Marker Colour</label>
+      <div class="color-row">
+        <button class="color-btn green selected" data-color="green" onclick="selectColor('green')">GREEN</button>
+        <button class="color-btn red" data-color="red" onclick="selectColor('red')">RED</button>
+        <button class="color-btn yellow" data-color="yellow" onclick="selectColor('yellow')">YELLOW</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMarker()">Drop It</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- SCRIPTS -->
+<!-- Leaflet JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, onSnapshot }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // ═══════════════════════════════════════════════════════
+  //  🔧 PASTE YOUR FIREBASE CONFIG HERE
+  //  (Replace the placeholder values below with your own)
+  // ═══════════════════════════════════════════════════════
+ const firebaseConfig = {
+  apiKey: "AIzaSyBW7novc1yVFnH0-1rfKLNd1mPiok6zz-A",
+  authDomain: "prodinfo-bbc1a.firebaseapp.com",
+  projectId: "prodinfo-bbc1a",
+  storageBucket: "prodinfo-bbc1a.firebasestorage.app",
+  messagingSenderId: "519268599874",
+  appId: "1:519268599874:web:8e3f05bd56e218b86545db"
+};
+  // ═══════════════════════════════════════════════════════
+
+  // Check if config looks real
+  const isConfigured = !firebaseConfig.apiKey.includes("PASTE");
+  if (!isConfigured) {
+    document.getElementById("configBanner").classList.add("show");
+    document.getElementById("statusDot").style.background = "#ff3c3c";
+    document.getElementById("statusText").textContent = "NOT CONNECTED";
+  }
+
+  let db = null;
+  let app = null;
+
+  if (isConfigured) {
+    try {
+      app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      document.getElementById("statusDot").style.background = "#00ff87";
+      document.getElementById("statusText").textContent = "LIVE";
+    } catch(e) {
+      console.error("Firebase init error:", e);
+      document.getElementById("statusDot").style.background = "#ffd700";
+      document.getElementById("statusText").textContent = "ERROR — check config";
+    }
+  }
+
+  // Make db available globally for the rest of the script
+  window._firestore = { db, collection, addDoc, deleteDoc, doc, onSnapshot };
+
+  // ── LEAFLET MAP SETUP ──
+  // Using CRS.Simple so we can use a flat image as the map
+  const map = L.map('map', {
+    crs: L.CRS.Simple,
+    minZoom: -3,
+    maxZoom: 3,
+    zoomSnap: 0.5,
+    attributionControl: false
+  });
+
+  // GTA 5 map image dimensions (the image below is a publicly hosted version)
+  // If you want to use your own: host the image, update the URL and bounds
+  const bounds = [[0,0],[8192,8192]];
+  L.imageOverlay(
+    'map.png',
+    bounds
+  ).addTo(map);
+  map.fitBounds(bounds);
+
+  // ── MARKER ICON FACTORY ──
+  function makeIcon(color) {
+    const colors = {
+      green:  { fill: '#00ff87', stroke: '#00cc6a' },
+      red:    { fill: '#ff3c3c', stroke: '#cc2222' },
+      yellow: { fill: '#ffd700', stroke: '#ccaa00' }
+    };
+    const c = colors[color] || colors.green;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
+      <path d="M14 0C6.27 0 0 6.27 0 14c0 10.5 14 22 14 22S28 24.5 28 14C28 6.27 21.73 0 14 0z"
+        fill="${c.fill}" stroke="${c.stroke}" stroke-width="2"/>
+      <circle cx="14" cy="14" r="5" fill="rgba(0,0,0,0.4)"/>
+    </svg>`;
+    return L.divIcon({
+      html: svg,
+      className: '',
+      iconSize: [28, 36],
+      iconAnchor: [14, 36],
+      popupAnchor: [0, -38]
+    });
+  }
+
+  // ── STATE ──
+  let pendingLatLng = null;
+  let selectedColor = 'green';
+  let markersOnMap = {}; // id → leaflet marker
+  let allMarkerData = []; // array of {id, title, desc, category, color, lat, lng, addedBy, timestamp}
+
+  window.selectedColor = selectedColor;
+  window.selectColor = function(c) {
+    selectedColor = c;
+    window.selectedColor = c;
+    document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelector(`.color-btn.${c}`).classList.add('selected');
+  };
+
+  // ── MAP CLICK → open modal ──
+  map.on('click', function(e) {
+    pendingLatLng = e.latlng;
+    document.getElementById('markerTitle').value = '';
+    document.getElementById('markerDesc').value = '';
+    document.getElementById('markerCategory').value = 'General';
+    window.selectColor('green');
+    document.getElementById('modalOverlay').classList.add('active');
+    setTimeout(() => document.getElementById('markerTitle').focus(), 100);
+    // Hide the click hint after first click
+    document.getElementById('clickHint').classList.add('hidden');
+  });
+
+  // ── CLOSE MODAL ──
+  window.closeModal = function() {
+    document.getElementById('modalOverlay').classList.remove('active');
+    pendingLatLng = null;
+  };
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) window.closeModal();
+  });
+
+  // ── ADD MARKER TO MAP ──
+  function addMarkerToMap(data) {
+    const marker = L.marker([data.lat, data.lng], { icon: makeIcon(data.color) }).addTo(map);
+    const catClass = data.color === 'red' ? 'red' : data.color === 'yellow' ? 'yellow' : '';
+    const date = data.timestamp ? new Date(data.timestamp).toLocaleDateString('en-GB') : 'Unknown';
+    marker.bindPopup(`
+      <div style="min-width:180px">
+        <div class="popup-title">${escHtml(data.title)}</div>
+        <div class="popup-category ${catClass}">${escHtml(data.category)}</div>
+        <div class="popup-desc">${escHtml(data.desc) || '<em>No description</em>'}</div>
+        <div class="popup-added">Added ${date}</div>
+        <button class="delete-btn" onclick="deleteMarker('${data.id}')">🗑 Delete Marker</button>
+      </div>
+    `);
+    markersOnMap[data.id] = marker;
+  }
+
+  // ── SAVE MARKER ──
+  window.saveMarker = async function() {
+    const title = document.getElementById('markerTitle').value.trim();
+    if (!title) { alert('Please enter a location name.'); return; }
+
+    const data = {
+      title,
+      desc: document.getElementById('markerDesc').value.trim(),
+      category: document.getElementById('markerCategory').value,
+      color: window.selectedColor,
+      lat: pendingLatLng.lat,
+      lng: pendingLatLng.lng,
+      timestamp: Date.now()
+    };
+
+    window.closeModal();
+
+    if (db) {
+      try {
+        const docRef = await window._firestore.addDoc(
+          window._firestore.collection(db, 'markers'), data
+        );
+        data.id = docRef.id;
+      } catch(e) {
+        console.error("Firestore save error:", e);
+        data.id = 'local_' + Date.now();
+      }
+    } else {
+      // No Firebase: store locally in memory (resets on refresh)
+      data.id = 'local_' + Date.now();
+    }
+
+    allMarkerData.push(data);
+    addMarkerToMap(data);
+    renderSidebar();
+  };
+
+  // ── DELETE MARKER ──
+  window.deleteMarker = async function(id) {
+    if (!confirm('Delete this marker?')) return;
+    map.closePopup();
+    if (markersOnMap[id]) {
+      map.removeLayer(markersOnMap[id]);
+      delete markersOnMap[id];
+    }
+    allMarkerData = allMarkerData.filter(m => m.id !== id);
+
+    if (db && !id.startsWith('local_')) {
+      try {
+        await window._firestore.deleteDoc(
+          window._firestore.doc(db, 'markers', id)
+        );
+      } catch(e) { console.error("Delete error:", e); }
+    }
+    renderSidebar();
+  };
+
+  // ── LOAD MARKERS FROM FIRESTORE (real-time) ──
+  function loadMarkers() {
+    if (!db) return;
+    const colRef = window._firestore.collection(db, 'markers');
+    window._firestore.onSnapshot(colRef, (snapshot) => {
+      // Clear everything and re-draw
+      Object.values(markersOnMap).forEach(m => map.removeLayer(m));
+      markersOnMap = {};
+      allMarkerData = [];
+      snapshot.forEach(docSnap => {
+        const data = { id: docSnap.id, ...docSnap.data() };
+        allMarkerData.push(data);
+        addMarkerToMap(data);
+      });
+      renderSidebar();
+    });
+  }
+  loadMarkers();
+
+  // ── SIDEBAR RENDER ──
+  function renderSidebar(filter = '') {
+    const list = document.getElementById('markerList');
+    const count = document.getElementById('markerCount');
+    const filtered = filter
+      ? allMarkerData.filter(m =>
+          m.title.toLowerCase().includes(filter.toLowerCase()) ||
+          (m.desc || '').toLowerCase().includes(filter.toLowerCase()) ||
+          m.category.toLowerCase().includes(filter.toLowerCase()))
+      : allMarkerData;
+
+    count.textContent = allMarkerData.length;
+
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="empty-state">
+        <div class="icon">📍</div>
+        <div>${filter ? 'No results found.' : 'No markers yet.<br/>Click anywhere on the map to add one.'}</div>
+      </div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.slice().reverse().map(m => {
+      const borderClass = m.color === 'red' ? 'red-border' : m.color === 'yellow' ? 'yellow-border' : '';
+      return `<div class="marker-item ${borderClass}" onclick="flyToMarker('${m.id}')">
+        <div class="marker-item-title">${escHtml(m.title)}</div>
+        <div class="marker-item-desc">${escHtml(m.desc) || escHtml(m.category)}</div>
+        <div class="marker-item-meta">${escHtml(m.category)} · ${m.timestamp ? new Date(m.timestamp).toLocaleDateString('en-GB') : ''}</div>
+      </div>`;
+    }).join('');
+  }
+
+  window.flyToMarker = function(id) {
+    const data = allMarkerData.find(m => m.id === id);
+    if (!data) return;
+    map.setView([data.lat, data.lng], 1, { animate: true, duration: 0.5 });
+    setTimeout(() => {
+      if (markersOnMap[id]) markersOnMap[id].openPopup();
+    }, 600);
+  };
+
+  // ── SEARCH ──
+  document.getElementById('searchBox').addEventListener('input', function() {
+    renderSidebar(this.value);
+  });
+
+  // ── HTML ESCAPE ──
+  function escHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+              .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+</script>
+
+</body>
+</html>
