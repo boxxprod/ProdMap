@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GTA5 Crew Map — Recipes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --green: #00ff87;
+      --green-dim: #00cc6a;
+      --red: #ff3c3c;
+      --yellow: #ffd700;
+      --blue: #1a6fff;
+      --bg: #0a0a0f;
+      --panel: #11141a;
+      --panel2: #181c25;
+      --border: #1e2535;
+      --text: #c8d6e5;
+      --text-dim: #5a6a80;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      height: 54px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--green);
+      text-shadow: 0 0 16px #00ff8766;
+      text-decoration: none;
+    }
+    .logo span { color: var(--text-dim); font-weight: 400; }
+
+    nav { display: flex; gap: 4px; }
+    .nav-link {
+      padding: 6px 16px;
+      border-radius: 4px;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--text-dim);
+      border: 1px solid transparent;
+      transition: all 0.15s;
+    }
+    .nav-link:hover { color: var(--text); border-color: var(--border); }
+    .nav-link.active { color: var(--green); border-color: var(--green); background: #00ff8711; }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .status-text {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--text-dim);
+    }
+
+    /* ── MAIN ── */
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 32px 24px;
+      width: 100%;
+      flex: 1;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .page-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #fff;
+    }
+    .page-title span {
+      color: var(--green);
+      text-shadow: 0 0 12px #00ff8755;
+    }
+
+    .page-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .search-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 9px 14px;
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      width: 220px;
+      transition: border-color 0.2s;
+    }
+    .search-box:focus { border-color: var(--green); }
+    .search-box::placeholder { color: var(--text-dim); }
+
+    .btn {
+      padding: 9px 20px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn-primary { background: var(--green); color: #000; }
+    .btn-primary:hover { background: var(--green-dim); }
+    .btn-secondary { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
+    .btn-secondary:hover { border-color: var(--text-dim); color: var(--text); }
+    .btn-danger { background: transparent; color: var(--red); border: 1px solid #ff3c3c44; }
+    .btn-danger:hover { background: #ff3c3c22; }
+    .btn-edit { background: transparent; color: var(--blue); border: 1px solid #1a6fff44; }
+    .btn-edit:hover { background: #1a6fff22; }
+    .btn-sm { padding: 5px 12px; font-size: 0.78rem; }
+
+    /* ── RECIPE GRID ── */
+    .recipe-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .recipe-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--green);
+      border-radius: 6px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:none; } }
+
+    .recipe-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .recipe-output {
+      flex: 1;
+    }
+
+    .recipe-output-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 3px;
+    }
+
+    .recipe-output-name {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+
+    .recipe-output-qty {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--yellow);
+      margin-top: 2px;
+    }
+
+    .card-actions { display: flex; gap: 6px; flex-shrink: 0; }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+    }
+
+    .ingredients-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+
+    .ingredient-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 5px 0;
+      border-bottom: 1px solid #1e253544;
+    }
+    .ingredient-row:last-child { border-bottom: none; }
+
+    .ingredient-qty {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--yellow);
+      min-width: 36px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .ingredient-name {
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    .recipe-notes {
+      background: var(--panel2);
+      border-left: 2px solid var(--text-dim);
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      border-radius: 0 4px 4px 0;
+      line-height: 1.4;
+    }
+
+    .recipe-meta {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-dim);
+      opacity: 0.5;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--text-dim);
+      grid-column: 1/-1;
+    }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 16px; }
+    .empty-state p { font-size: 1rem; }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--green);
+      border-radius: 6px;
+      width: 520px;
+      max-width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 28px;
+      animation: slideUp 0.2s ease;
+    }
+    @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:none;opacity:1} }
+    .modal::-webkit-scrollbar { width: 4px; }
+    .modal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .modal h2 {
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 22px;
+    }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 0.72rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 9px 12px;
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+      resize: vertical;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus { border-color: var(--green); }
+
+    .form-row { display: flex; gap: 10px; }
+    .form-row .form-group { flex: 1; }
+
+    /* Ingredient builder */
+    .ingredient-builder { display: flex; flex-direction: column; gap: 8px; }
+
+    .ingredient-input-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .ingredient-input-row input[type="number"] { width: 80px; flex-shrink: 0; }
+    .ingredient-input-row input[type="text"] { flex: 1; }
+    .ingredient-input-row button {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--red);
+      border-radius: 4px;
+      width: 32px; height: 34px;
+      cursor: pointer;
+      font-size: 1rem;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .ingredient-input-row button:hover { background: #ff3c3c22; border-color: var(--red); }
+
+    .add-ingredient-btn {
+      background: transparent;
+      border: 1px dashed var(--border);
+      color: var(--text-dim);
+      border-radius: 4px;
+      padding: 7px;
+      cursor: pointer;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      transition: all 0.15s;
+      width: 100%;
+    }
+    .add-ingredient-btn:hover { border-color: var(--green); color: var(--green); }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+    }
+    .modal-actions .btn { flex: 1; padding: 11px; font-size: 1rem; }
+
+    /* ── PASSWORD SCREEN ── */
+    .pw-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .pw-screen.hidden { display: none; }
+    .pw-box {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--green);
+      border-radius: 6px;
+      padding: 36px;
+      width: 340px;
+      text-align: center;
+    }
+    .pw-box h2 {
+      font-size: 1rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 20px;
+    }
+    .pw-box input {
+      width: 100%;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1rem;
+      outline: none;
+      text-align: center;
+      letter-spacing: 4px;
+      margin-bottom: 14px;
+      transition: border-color 0.2s;
+    }
+    .pw-box input:focus { border-color: var(--green); }
+    .pw-error {
+      color: var(--red);
+      font-size: 0.82rem;
+      font-family: 'Share Tech Mono', monospace;
+      margin-top: -8px;
+      margin-bottom: 10px;
+      display: none;
+    }
+    .pw-error.show { display: block; }
+
+    /* Config banner */
+    .config-banner {
+      display: none;
+      background: #ff3c3c22;
+      border-bottom: 1px solid var(--red);
+      color: var(--red);
+      text-align: center;
+      padding: 10px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8rem;
+    }
+    .config-banner.show { display: block; }
+  </style>
+</head>
+<body>
+
+<!-- PASSWORD SCREEN -->
+<div class="pw-screen" id="pwScreen">
+  <div class="pw-box">
+    <h2>// Crew Access Required</h2>
+    <input type="password" id="pwInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPassword()"/>
+    <div class="pw-error" id="pwError">Incorrect password</div>
+    <button class="btn btn-primary" style="width:100%" onclick="checkPassword()">Enter</button>
+  </div>
+</div>
+
+<!-- CONFIG BANNER -->
+<div class="config-banner" id="configBanner">
+  ⚠ FIREBASE NOT CONFIGURED — recipes won't save yet. See the setup guide.
+</div>
+
+<!-- HEADER -->
+<header>
+  <a class="logo" href="index.html">GTA5 <span>//</span> CREW MAP</a>
+  <nav>
+    <a class="nav-link" href="index.html">Map</a>
+    <a class="nav-link active" href="recipes.html">Recipes</a>
+  </nav>
+  <div class="header-right">
+    <div class="status-dot" id="statusDot"></div>
+    <div class="status-text" id="statusText">CONNECTING...</div>
+  </div>
+</header>
+
+<!-- MAIN PAGE -->
+<div class="page">
+  <div class="page-header">
+    <div class="page-title">Crafting <span>Recipes</span></div>
+    <div class="page-actions">
+      <input class="search-box" id="searchBox" type="text" placeholder="Search recipes..."/>
+      <button class="btn btn-primary" onclick="openAddModal()">+ Add Recipe</button>
+    </div>
+  </div>
+
+  <div class="recipe-grid" id="recipeGrid">
+    <div class="empty-state">
+      <div class="icon">⚗️</div>
+      <p>No recipes yet.<br/>Click "Add Recipe" to get started.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ADD / EDIT MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">// Add Recipe</h2>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Output Item Name</label>
+        <input type="text" id="outputName" placeholder="e.g. Pipe Bomb" maxlength="60"/>
+      </div>
+      <div class="form-group" style="max-width:100px">
+        <label>Quantity Made</label>
+        <input type="number" id="outputQty" value="1" min="1" max="9999"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Ingredients</label>
+      <div class="ingredient-builder" id="ingredientBuilder"></div>
+      <button class="add-ingredient-btn" onclick="addIngredientRow()">+ Add Ingredient</button>
+    </div>
+
+    <div class="form-group">
+      <label>Notes / Tips (optional)</label>
+      <textarea id="recipeNotes" rows="2" placeholder="e.g. Only craftable at the workshop"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="modalSaveBtn" onclick="saveRecipe()">Save Recipe</button>
+    </div>
+  </div>
+</div>
+
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // ═══════════════════════════════════════════════════════
+  //  🔧 PASTE YOUR FIREBASE CONFIG HERE (same as index.html)
+  // ═══════════════════════════════════════════════════════
+  const firebaseConfig = {
+    apiKey:            "PASTE_YOUR_apiKey_HERE",
+    authDomain:        "PASTE_YOUR_authDomain_HERE",
+    projectId:         "PASTE_YOUR_projectId_HERE",
+    storageBucket:     "PASTE_YOUR_storageBucket_HERE",
+    messagingSenderId: "PASTE_YOUR_messagingSenderId_HERE",
+    appId:             "PASTE_YOUR_appId_HERE"
+  };
+  // ═══════════════════════════════════════════════════════
+
+  // ── PASSWORD ──
+  // Change this to whatever password you want your crew to use
+  const CREW_PASSWORD = "ndsucks";
+
+  window.checkPassword = function() {
+    const val = document.getElementById('pwInput').value;
+    if (val === CREW_PASSWORD) {
+      sessionStorage.setItem('crewAuth', '1');
+      document.getElementById('pwScreen').classList.add('hidden');
+    } else {
+      document.getElementById('pwError').classList.add('show');
+      document.getElementById('pwInput').value = '';
+    }
+  };
+
+  // Check if already authed this session
+  if (sessionStorage.getItem('crewAuth') === '1') {
+    document.getElementById('pwScreen').classList.add('hidden');
+  }
+
+  // ── FIREBASE INIT ──
+  const isConfigured = !firebaseConfig.apiKey.includes("PASTE");
+  if (!isConfigured) {
+    document.getElementById("configBanner").classList.add("show");
+    document.getElementById("statusDot").style.background = "#ff3c3c";
+    document.getElementById("statusText").textContent = "NOT CONNECTED";
+  }
+
+  let db = null;
+  if (isConfigured) {
+    try {
+      const app = initializeApp(firebaseConfig);
+      db = getFirestore(app);
+      document.getElementById("statusDot").style.background = "#00ff87";
+      document.getElementById("statusText").textContent = "LIVE";
+    } catch(e) {
+      console.error("Firebase init error:", e);
+      document.getElementById("statusText").textContent = "ERROR";
+    }
+  }
+
+  // ── STATE ──
+  let allRecipes = [];
+  let editingId = null;
+
+  // ── INGREDIENT ROWS ──
+  window.addIngredientRow = function(qty = '', name = '') {
+    const builder = document.getElementById('ingredientBuilder');
+    const row = document.createElement('div');
+    row.className = 'ingredient-input-row';
+    row.innerHTML = `
+      <input type="number" placeholder="Qty" min="1" value="${qty}" style="width:80px"/>
+      <input type="text" placeholder="Item name" value="${escHtml(name)}" maxlength="60"/>
+      <button onclick="this.parentElement.remove()" title="Remove">✕</button>
+    `;
+    builder.appendChild(row);
+  };
+
+  function getIngredients() {
+    const rows = document.querySelectorAll('#ingredientBuilder .ingredient-input-row');
+    const ingredients = [];
+    rows.forEach(row => {
+      const qty = row.querySelector('input[type="number"]').value.trim();
+      const name = row.querySelector('input[type="text"]').value.trim();
+      if (name) ingredients.push({ qty: qty || '1', name });
+    });
+    return ingredients;
+  }
+
+  // ── MODAL ──
+  window.openAddModal = function() {
+    editingId = null;
+    document.getElementById('modalTitle').textContent = '// Add Recipe';
+    document.getElementById('modalSaveBtn').textContent = 'Save Recipe';
+    document.getElementById('outputName').value = '';
+    document.getElementById('outputQty').value = '1';
+    document.getElementById('recipeNotes').value = '';
+    document.getElementById('ingredientBuilder').innerHTML = '';
+    addIngredientRow();
+    addIngredientRow();
+    document.getElementById('modalOverlay').classList.add('active');
+    setTimeout(() => document.getElementById('outputName').focus(), 100);
+  };
+
+  window.openEditModal = function(id) {
+    const recipe = allRecipes.find(r => r.id === id);
+    if (!recipe) return;
+    editingId = id;
+    document.getElementById('modalTitle').textContent = '// Edit Recipe';
+    document.getElementById('modalSaveBtn').textContent = 'Save Changes';
+    document.getElementById('outputName').value = recipe.outputName;
+    document.getElementById('outputQty').value = recipe.outputQty || 1;
+    document.getElementById('recipeNotes').value = recipe.notes || '';
+    document.getElementById('ingredientBuilder').innerHTML = '';
+    (recipe.ingredients || []).forEach(i => addIngredientRow(i.qty, i.name));
+    if (!recipe.ingredients || recipe.ingredients.length === 0) addIngredientRow();
+    document.getElementById('modalOverlay').classList.add('active');
+  };
+
+  window.closeModal = function() {
+    document.getElementById('modalOverlay').classList.remove('active');
+    editingId = null;
+  };
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) window.closeModal();
+  });
+
+  // ── SAVE ──
+  window.saveRecipe = async function() {
+    const outputName = document.getElementById('outputName').value.trim();
+    if (!outputName) { alert('Please enter an output item name.'); return; }
+    const ingredients = getIngredients();
+    if (ingredients.length === 0) { alert('Please add at least one ingredient.'); return; }
+
+    const data = {
+      outputName,
+      outputQty: document.getElementById('outputQty').value || '1',
+      ingredients,
+      notes: document.getElementById('recipeNotes').value.trim(),
+      timestamp: Date.now()
+    };
+
+    window.closeModal();
+
+    if (editingId) {
+      // UPDATE
+      allRecipes = allRecipes.map(r => r.id === editingId ? { ...data, id: editingId } : r);
+      if (db && !editingId.startsWith('local_')) {
+        try { await updateDoc(doc(db, 'recipes', editingId), data); }
+        catch(e) { console.error('Update error:', e); }
+      }
+    } else {
+      // ADD
+      let id = 'local_' + Date.now();
+      if (db) {
+        try {
+          const ref = await addDoc(collection(db, 'recipes'), data);
+          id = ref.id;
+        } catch(e) { console.error('Add error:', e); }
+      }
+      allRecipes.push({ ...data, id });
+    }
+    renderRecipes();
+  };
+
+  // ── DELETE ──
+  window.deleteRecipe = async function(id) {
+    if (!confirm('Delete this recipe?')) return;
+    allRecipes = allRecipes.filter(r => r.id !== id);
+    if (db && !id.startsWith('local_')) {
+      try { await deleteDoc(doc(db, 'recipes', id)); }
+      catch(e) { console.error('Delete error:', e); }
+    }
+    renderRecipes();
+  };
+
+  // ── LOAD (real-time) ──
+  function loadRecipes() {
+    if (!db) return;
+    onSnapshot(collection(db, 'recipes'), snapshot => {
+      allRecipes = [];
+      snapshot.forEach(d => allRecipes.push({ id: d.id, ...d.data() }));
+      renderRecipes();
+    });
+  }
+  loadRecipes();
+
+  // ── RENDER ──
+  function renderRecipes(filter = '') {
+    const grid = document.getElementById('recipeGrid');
+    const filtered = filter
+      ? allRecipes.filter(r =>
+          r.outputName.toLowerCase().includes(filter.toLowerCase()) ||
+          (r.notes || '').toLowerCase().includes(filter.toLowerCase()) ||
+          (r.ingredients || []).some(i => i.name.toLowerCase().includes(filter.toLowerCase())))
+      : allRecipes;
+
+    if (filtered.length === 0) {
+      grid.innerHTML = `<div class="empty-state">
+        <div class="icon">⚗️</div>
+        <p>${filter ? 'No recipes match your search.' : 'No recipes yet.<br/>Click "Add Recipe" to get started.'}</p>
+      </div>`;
+      return;
+    }
+
+    grid.innerHTML = filtered.slice().sort((a,b) => a.outputName.localeCompare(b.outputName)).map(r => {
+      const ingredientRows = (r.ingredients || []).map(i => `
+        <div class="ingredient-row">
+          <div class="ingredient-qty">${escHtml(i.qty)}x</div>
+          <div class="ingredient-name">${escHtml(i.name)}</div>
+        </div>
+      `).join('');
+
+      const notes = r.notes ? `<div class="recipe-notes">${escHtml(r.notes)}</div>` : '';
+      const date = r.timestamp ? new Date(r.timestamp).toLocaleDateString('en-GB') : '';
+
+      return `<div class="recipe-card">
+        <div class="recipe-card-header">
+          <div class="recipe-output">
+            <div class="recipe-output-label">Output</div>
+            <div class="recipe-output-name">${escHtml(r.outputName)}</div>
+            <div class="recipe-output-qty">× ${escHtml(r.outputQty)}</div>
+          </div>
+          <div class="card-actions">
+            <button class="btn btn-edit btn-sm" onclick="openEditModal('${r.id}')">✏ Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteRecipe('${r.id}')">🗑</button>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div>
+          <div class="ingredients-label">Ingredients</div>
+          ${ingredientRows}
+        </div>
+        ${notes}
+        <div class="recipe-meta">Added ${date}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── SEARCH ──
+  document.getElementById('searchBox').addEventListener('input', function() {
+    renderRecipes(this.value);
+  });
+
+  function escHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+</script>
+</body>
+</html>
