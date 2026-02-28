@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>GTA5 Crew Map — Recipes</title>
+  <title>GTA5 Crew Map — Heists</title>
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
   <style>
     :root {
@@ -481,7 +481,7 @@
 
 <!-- CONFIG BANNER -->
 <div class="config-banner" id="configBanner">
-  ⚠ FIREBASE NOT CONFIGURED — recipes won't save yet. See the setup guide.
+  ⚠ FIREBASE NOT CONFIGURED — equipment won't save yet. See the setup guide.
 </div>
 
 <!-- HEADER -->
@@ -489,8 +489,8 @@
   <a class="logo" href="index.html">GTA5 <span>//</span> CREW MAP</a>
   <nav>
     <a class="nav-link" href="index.html">Map</a>
-    <a class="nav-link active" href="recipes.html">Recipes</a>
-<a class="nav-link" href="heisting.html">Heisting</a>
+    <a class="nav-link" href="recipes.html">Recipes</a>
+<a class="nav-link active" href="heisting.html">Heisting</a>
   </nav>
   <div class="header-right">
     <div class="status-dot" id="statusDot"></div>
@@ -501,51 +501,51 @@
 <!-- MAIN PAGE -->
 <div class="page">
   <div class="page-header">
-    <div class="page-title">Crafting <span>Recipes</span></div>
+    <div class="page-title">Heisting <span>Equipment</span></div>
     <div class="page-actions">
-      <input class="search-box" id="searchBox" type="text" placeholder="Search recipes..."/>
-      <button class="btn btn-primary" onclick="openAddModal()">+ Add Recipe</button>
+      <input class="search-box" id="searchBox" type="text" placeholder="Search Crime..."/>
+      <button class="btn btn-primary" onclick="openAddModal()">+ Add Heist</button>
     </div>
   </div>
 
   <div class="recipe-grid" id="recipeGrid">
     <div class="empty-state">
       <div class="icon">⚗️</div>
-      <p>No recipes yet.<br/>Click "Add Recipe" to get started.</p>
+      <p>No Heists yet.<br/>Click "Add Heist" to get started.</p>
     </div>
   </div>
 </div>
 
 <!-- ADD / EDIT MODAL -->
-<div class="modal-overlay" id="modalOverlay">
+<div class="modal-overlay" id="heistModalOverlay">
   <div class="modal">
-    <h2 id="modalTitle">// Add Recipe</h2>
+    <h2 id="heistModalTitle">// Add Heist</h2>
 
     <div class="form-row">
       <div class="form-group">
-        <label>Output Item Name</label>
-        <input type="text" id="outputName" placeholder="e.g. Pipe Bomb" maxlength="60"/>
+        <label>Crime</label>
+        <input type="text" id="heistOutputName" placeholder="e.g. Payday" maxlength="60"/>
       </div>
       <div class="form-group" style="max-width:100px">
         <label>Quantity Made</label>
-        <input type="number" id="outputQty" value="1" min="1" max="9999"/>
+        <input type="number" id="heistOutputQty" value="1" min="1" max="9999"/>
       </div>
     </div>
 
     <div class="form-group">
-      <label>Ingredients</label>
-      <div class="ingredient-builder" id="ingredientBuilder"></div>
-      <button class="add-ingredient-btn" onclick="addIngredientRow()">+ Add Ingredient</button>
+      <label>Equipment</label>
+      <div class="ingredient-builder" id="heistBuilder"></div>
+      <button class="add-ingredient-btn" onclick="addIngredientRow()">+ Add Equipment</button>
     </div>
 
     <div class="form-group">
-      <label>Notes / Tips (optional)</label>
-      <textarea id="recipeNotes" rows="2" placeholder="e.g. Only craftable at the workshop"></textarea>
+      <label>Tips / Instructions (optional)</label>
+      <textarea id="heistNotes" rows="2" placeholder="e.g. Start with x item"></textarea>
     </div>
 
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" id="modalSaveBtn" onclick="saveRecipe()">Save Recipe</button>
+      <button class="btn btn-primary" id="heistModalSaveBtn" onclick="saveRecipe()">Save Heist</button>
     </div>
   </div>
 </div>
@@ -617,7 +617,7 @@ const firebaseConfig = {
 
   // ── INGREDIENT ROWS ──
   window.addIngredientRow = function(qty = '', name = '') {
-    const builder = document.getElementById('ingredientBuilder');
+    const builder = document.getElementById('heistBuilder');
     const row = document.createElement('div');
     row.className = 'ingredient-input-row';
     row.innerHTML = `
@@ -629,7 +629,7 @@ const firebaseConfig = {
   };
 
   function getIngredients() {
-    const rows = document.querySelectorAll('#ingredientBuilder .ingredient-input-row');
+    const rows = document.querySelectorAll('#heistBuilder .ingredient-input-row');
     const ingredients = [];
     rows.forEach(row => {
       const qty = row.querySelector('input[type="number"]').value.trim();
@@ -642,53 +642,53 @@ const firebaseConfig = {
   // ── MODAL ──
   window.openAddModal = function() {
     editingId = null;
-    document.getElementById('modalTitle').textContent = '// Add Recipe';
-    document.getElementById('modalSaveBtn').textContent = 'Save Recipe';
-    document.getElementById('outputName').value = '';
-    document.getElementById('outputQty').value = '1';
-    document.getElementById('recipeNotes').value = '';
-    document.getElementById('ingredientBuilder').innerHTML = '';
+    document.getElementById('heistModalTitle').textContent = '// Add Crime';
+    document.getElementById('heistModalSaveBtn').textContent = 'Save Crime';
+    document.getElementById('heistOutputName').value = '';
+    document.getElementById('heistOutputQty').value = '1';
+    document.getElementById('heistNotes').value = '';
+    document.getElementById('heistBuilder').innerHTML = '';
     addIngredientRow();
     addIngredientRow();
-    document.getElementById('modalOverlay').classList.add('active');
-    setTimeout(() => document.getElementById('outputName').focus(), 100);
+    document.getElementById('heistModalOverlay').classList.add('active');
+    setTimeout(() => document.getElementById('heistOutputName').focus(), 100);
   };
 
   window.openEditModal = function(id) {
     const recipe = allRecipes.find(r => r.id === id);
     if (!recipe) return;
     editingId = id;
-    document.getElementById('modalTitle').textContent = '// Edit Recipe';
-    document.getElementById('modalSaveBtn').textContent = 'Save Changes';
-    document.getElementById('outputName').value = recipe.outputName;
-    document.getElementById('outputQty').value = recipe.outputQty || 1;
-    document.getElementById('recipeNotes').value = recipe.notes || '';
-    document.getElementById('ingredientBuilder').innerHTML = '';
+    document.getElementById('heistModalTitle').textContent = '// Edit Recipe';
+    document.getElementById('heistModalSaveBtn').textContent = 'Save Changes';
+    document.getElementById('heistOutputName').value = recipe.outputName;
+    document.getElementById('heistOutputQty').value = recipe.outputQty || 1;
+    document.getElementById('heistNotes').value = recipe.notes || '';
+    document.getElementById('heistBuilder').innerHTML = '';
     (recipe.ingredients || []).forEach(i => addIngredientRow(i.qty, i.name));
     if (!recipe.ingredients || recipe.ingredients.length === 0) addIngredientRow();
-    document.getElementById('modalOverlay').classList.add('active');
+    document.getElementById('heistModalOverlay').classList.add('active');
   };
 
   window.closeModal = function() {
-    document.getElementById('modalOverlay').classList.remove('active');
+    document.getElementById('heistModalOverlay').classList.remove('active');
     editingId = null;
   };
-  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+  document.getElementById('heistModalOverlay').addEventListener('click', function(e) {
     if (e.target === this) window.closeModal();
   });
 
   // ── SAVE ──
   window.saveRecipe = async function() {
-    const outputName = document.getElementById('outputName').value.trim();
+    const outputName = document.getElementById('heistOutputName').value.trim();
     if (!outputName) { alert('Please enter an output item name.'); return; }
     const ingredients = getIngredients();
     if (ingredients.length === 0) { alert('Please add at least one ingredient.'); return; }
 
     const data = {
       outputName,
-      outputQty: document.getElementById('outputQty').value || '1',
+      outputQty: document.getElementById('heistOutputQty').value || '1',
       ingredients,
-      notes: document.getElementById('recipeNotes').value.trim(),
+      notes: document.getElementById('heistNotes').value.trim(),
       timestamp: Date.now()
     };
 
@@ -698,7 +698,7 @@ const firebaseConfig = {
       // UPDATE
       allRecipes = allRecipes.map(r => r.id === editingId ? { ...data, id: editingId } : r);
       if (db && !editingId.startsWith('local_')) {
-        try { await updateDoc(doc(db, 'recipes', editingId), data); }
+        try { await updateDoc(doc(db, 'heisting', editingId), data); }
         catch(e) { console.error('Update error:', e); }
       }
     } else {
@@ -706,7 +706,7 @@ const firebaseConfig = {
       let id = 'local_' + Date.now();
       if (db) {
         try {
-          const ref = await addDoc(collection(db, 'recipes'), data);
+          const ref = await addDoc(collection(db, 'heisting'), data);
           id = ref.id;
         } catch(e) { console.error('Add error:', e); }
       }
@@ -720,7 +720,7 @@ const firebaseConfig = {
     if (!confirm('Delete this recipe?')) return;
     allRecipes = allRecipes.filter(r => r.id !== id);
     if (db && !id.startsWith('local_')) {
-      try { await deleteDoc(doc(db, 'recipes', id)); }
+      try { await deleteDoc(doc(db, 'heisting', id)); }
       catch(e) { console.error('Delete error:', e); }
     }
     renderRecipes();
@@ -729,7 +729,7 @@ const firebaseConfig = {
   // ── LOAD (real-time) ──
   function loadRecipes() {
     if (!db) return;
-    onSnapshot(collection(db, 'recipes'), snapshot => {
+    onSnapshot(collection(db, 'heisting'), snapshot => {
       allRecipes = [];
       snapshot.forEach(d => allRecipes.push({ id: d.id, ...d.data() }));
       renderRecipes();
@@ -750,7 +750,7 @@ const firebaseConfig = {
     if (filtered.length === 0) {
       grid.innerHTML = `<div class="empty-state">
         <div class="icon">⚗️</div>
-        <p>${filter ? 'No recipes match your search.' : 'No recipes yet.<br/>Click "Add Recipe" to get started.'}</p>
+        <p>${filter ? 'No heists match your search.' : 'No heists yet.<br/>Click "Add Heists" to get started.'}</p>
       </div>`;
       return;
     }
@@ -769,7 +769,7 @@ const firebaseConfig = {
       return `<div class="recipe-card">
         <div class="recipe-card-header">
           <div class="recipe-output">
-            <div class="recipe-output-label">Output</div>
+            <div class="recipe-output-label">Heist</div>
             <div class="recipe-output-name">${escHtml(r.outputName)}</div>
             <div class="recipe-output-qty">× ${escHtml(r.outputQty)}</div>
           </div>
@@ -780,7 +780,7 @@ const firebaseConfig = {
         </div>
         <div class="divider"></div>
         <div>
-          <div class="ingredients-label">Ingredients</div>
+          <div class="ingredients-label">Equipment</div>
           ${ingredientRows}
         </div>
         ${notes}
