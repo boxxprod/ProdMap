@@ -402,6 +402,72 @@
     }
     .config-banner.show { display: block; }
 
+.pw-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pw-screen.hidden { display: none; }
+.pw-box {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--green);
+  border-radius: 6px;
+  padding: 36px;
+  width: 340px;
+  text-align: center;
+}
+.pw-box h2 {
+  font-size: 1rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 20px;
+}
+.pw-box input {
+  width: 100%;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 1rem;
+  outline: none;
+  text-align: center;
+  letter-spacing: 4px;
+  margin-bottom: 14px;
+  transition: border-color 0.2s;
+}
+.pw-box input:focus { border-color: var(--green); }
+.pw-box button {
+  width: 100%;
+  padding: 10px;
+  background: var(--green);
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.pw-box button:hover { background: var(--green-dim); }
+.pw-error {
+  color: var(--red);
+  font-size: 0.82rem;
+  font-family: 'Share Tech Mono', monospace;
+  margin-bottom: 10px;
+  display: none;
+}
+.pw-error.show { display: block; }
+
     /* Marker count badge */
     .marker-count {
       display: inline-block;
@@ -417,6 +483,16 @@
   </style>
 </head>
 <body>
+
+<!-- PASSWORD SCREEN -->
+<div class="pw-screen" id="pwScreen">
+  <div class="pw-box">
+    <h2>// Crew Access Required</h2>
+    <input type="password" id="pwInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkPassword()"/>
+    <div class="pw-error" id="pwError">Incorrect password</div>
+    <button onclick="checkPassword()">Enter</button>
+  </div>
+</div>
 
 <!-- CONFIG BANNER (shown if Firebase isn't set up yet) -->
 <div class="config-banner" id="configBanner">
@@ -524,7 +600,24 @@
   appId: "1:519268599874:web:8e3f05bd56e218b86545db"
 };
   // ═══════════════════════════════════════════════════════
+// ── PASSWORD ──
+// Change this to match the password in recipes.html
+const CREW_PASSWORD = "ndsucks";
 
+window.checkPassword = function() {
+  const val = document.getElementById('pwInput').value;
+  if (val === CREW_PASSWORD) {
+    sessionStorage.setItem('crewAuth', '1');
+    document.getElementById('pwScreen').classList.add('hidden');
+  } else {
+    document.getElementById('pwError').classList.add('show');
+    document.getElementById('pwInput').value = '';
+  }
+};
+
+if (sessionStorage.getItem('crewAuth') === '1') {
+  document.getElementById('pwScreen').classList.add('hidden');
+}
   // Check if config looks real
   const isConfigured = !firebaseConfig.apiKey.includes("PASTE");
   if (!isConfigured) {
