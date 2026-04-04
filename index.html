@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>GTA5 Crew Map</title>
-
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 
@@ -858,7 +857,26 @@ if (sessionStorage.getItem('crewAuth') === '1') {
 
   // ── SEARCH ──
   document.getElementById('searchBox').addEventListener('input', function() {
-    renderSidebar(this.value);
+    const filter = this.value.toLowerCase();
+    renderSidebar(filter);
+
+    // Show/hide markers on the map based on search
+    allMarkerData.forEach(m => {
+      const matches = !filter
+        || m.title.toLowerCase().includes(filter)
+        || (m.desc || '').toLowerCase().includes(filter)
+        || m.category.toLowerCase().includes(filter);
+
+      if (markersOnMap[m.id]) {
+        if (matches) {
+          if (!map.hasLayer(markersOnMap[m.id])) {
+            markersOnMap[m.id].addTo(map);
+          }
+        } else {
+          map.removeLayer(markersOnMap[m.id]);
+        }
+      }
+    });
   });
 
   // ── HTML ESCAPE ──
